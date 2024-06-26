@@ -1,10 +1,13 @@
-export const configBaseSepolia = [
+import { base } from 'viem/chains';
+
+export const configBase = [
   {
     groupId: 'ZerodevECDSAValidatorEvents',
     eventSignatures: [
       'event OwnerChanged(address indexed account,address indexed oldOwner,address indexed newOwner)',
     ],
     contractAddress: '0xd9AB5096a832b9ce79914329DAEE236f8Eea0390',
-    startBlock: 6897565,
+    startBlock: 11387084,
   },
+  // add more event groups here
 ];

@@ -23,7 +23,7 @@ import { EventService } from './services/event-service';
     }),
     ConfigModule.forRoot({ envFilePath: 'indexer.env', isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGO_URI, {
-      dbName: process.env.DB_NAME,
+      dbName: process.env.DB_NAME ?? 'indexer',
     }),
     MongooseModule.forFeature([
       {

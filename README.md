@@ -1,30 +1,6 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Indexer
+This is a simple indexer which can index events from multiple chains and expose a GraphQL API to query indexed events.
 
 ## Installation
 
@@ -32,8 +8,26 @@
 $ npm install
 ```
 
-## Running the app
+## Setting up the indexer
+1. Create a `indexer.env` file in the root directory of the project by making a copy of `indexer.env.example` and provide values of the following
+   > 1. `MONGO_URI` - Indexer uses MongoDB to store indexed events. Provide the connection string of the MongoDB instance you want to use.
+   > 2. `DB_NAME` - database that indexer will use to store indexed events (optional, if not provided, `indexer` will be used)
+   > 3. `RPC_URL_<CHAIN_ID>` - RPC URL of the chain you want to index events from. Replace `<CHAIN_ID>` with the id of the chain. You must provide RPC URL for each chain you want to index events from.
 
+
+For each of the chains you want to index events from, there are 4 steps that need to be completed
+1. Add a config file in `src/configs` directory, it should follow the format similar to examples provided (indexing-config-example-base.ts, indexing-config-example-optimism-sepolia.ts)
+2. Add an event group for each contract you want to index events for in the config file (refer to examples provided in src/configs/indexing-config-example-base.ts and src/configs/indexing-config-example-optimism-sepolia.ts)
+3. Add the chain in `indexing-config.ts` file (in switch case)
+4. Add RPC URL for the chain in `indexer.env` file (described above)
+
+## Building the indexer
+```bash
+$ npm run build
+```
+
+## Running the indexer
+After adding an `indexer.env` file, you can run the indexer using the following command(s)
 ```bash
 # development
 $ npm run start
@@ -45,29 +39,11 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
 ## Support
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Indexer is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please create an issue in the github repo.
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+Indexer is [MIT licensed](LICENSE).
