@@ -1,7 +1,3 @@
-
-## Indexer
-This is a simple indexer which can index events from multiple chains and expose a GraphQL API to query indexed events.
-
 ## Installation
 
 ```bash
