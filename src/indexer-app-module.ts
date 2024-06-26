@@ -9,9 +9,18 @@ import { IndexerWarmupServiceV2 } from './indexer-warmup-service-v2';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventEntity, EventSchema } from './models/event-entity';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { EventResolver } from './services/event-resolver';
+import { EventService } from './services/event-service';
 
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      sortSchema: true,
+    }),
     ConfigModule.forRoot({ envFilePath: 'indexer.env', isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGO_URI, {
       dbName: process.env.DB_NAME,
@@ -31,6 +40,8 @@ import { EventEntity, EventSchema } from './models/event-entity';
   providers: [
     IndexerService,
     IndexerWarmupServiceV2,
+    EventService,
+    EventResolver
   ],
   exports: [],
 })

@@ -26,9 +26,9 @@ export type EventDocument = EventEntity & mongoose.Document;
 
 // for queries
 EventSchema.index({
+  chainId: 1,
   contractAddress: 1,
   eventName: 1,
-  chainId: 1,
   'data.key': 1,
   'data.value': 1,
 });
