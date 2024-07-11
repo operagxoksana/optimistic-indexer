@@ -35,6 +35,9 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## GraphQL support
+Indexer provides a GraphQL API to query indexed events. You can access the GraphQL playground at `http://localhost:3000/graphql` (by default, you can change the port in `main.ts` file)
+
 ## Support
 
 Indexer is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please create an issue in the github repo.
