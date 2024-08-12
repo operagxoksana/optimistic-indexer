@@ -13,3 +13,11 @@ export function getParamValue(
   }
   return;
 }
+
+export function divideArray(arr: any[], noOfSubArrays: number) {
+  const result = Array.from({ length: noOfSubArrays }, () => []);
+  for (let i = 0; i < arr.length; i++) {
+    result[i % noOfSubArrays].push(arr[i]);
+  }
+  return result;
+}

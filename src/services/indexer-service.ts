@@ -1,20 +1,15 @@
 import { Model } from 'mongoose';
-import {
-  EventGroupIndexConfig,
-  IndexerChainConfig,
-  IndexerChainConfigDocument,
-} from '../models/indexer-chain-config';
+import { EventGroupIndexConfig, IndexerChainConfig, IndexerChainConfigDocument } from '../models/indexer-chain-config';
 import { InjectModel } from '@nestjs/mongoose';
 import { ethers } from 'ethers';
 import { Injectable, Logger } from '@nestjs/common';
 import { getEventGroupConfigs } from '../configs/indexing-config';
-import {
-  calculateBlockTimestamps,
-  canCalculateBlockTimestamp,
-} from '../block-timestamp.utils';
+import { calculateBlockTimestamps, canCalculateBlockTimestamp } from '../block-timestamp.utils';
 
 import { EventDocument, EventEntity, Param } from '../models/event-entity';
-import { SUPPORTED_CHAIN_IDS } from '../constants';
+import { CHUNKED_CHAINS, NO_OF_WORKERS } from '../constants';
+import Redlock, { Lock } from 'redlock';
+import Client from 'ioredis';
 
 const MONGO_DUPLICATE_KEY_ERROR_CODE = 11000;
 
@@ -22,23 +17,57 @@ const MONGO_DUPLICATE_KEY_ERROR_CODE = 11000;
 export class IndexerService {
   private logger = new Logger(IndexerService.name);
 
+  private redlock: Redlock;
+
+  private lock: Lock;
+  private lockedIndex: number = 0;
+  private chainsToIndex: number[];
+
   constructor(
     @InjectModel(IndexerChainConfig.name)
     private indexerChainConfigModel: Model<IndexerChainConfigDocument>,
     @InjectModel(EventEntity.name) private eventsModel: Model<EventDocument>,
-  ) {}
+  ) {
+    const redisHost = process.env.REDIS_HOST;
+    const redisPort = Number(process.env.REDIS_PORT);
+    const redis = new Client({ host: redisHost, port: redisPort });
+    this.redlock = new Redlock([redis]);
+  }
 
   async runIndexer(): Promise<void> {
-    for (const chainId of SUPPORTED_CHAIN_IDS) {
+    await this._acquireLock();
+    for (const chainId of this.chainsToIndex) {
       await this._indexOldEventsForNewlyAddedGroups(chainId);
     }
 
     while (true) {
-      const indexingPromises = SUPPORTED_CHAIN_IDS.map(
+      await this._acquireLock();
+      const indexingPromises = this.chainsToIndex.map(
         async (chainId) => await this._indexNewlyProducedEvents(chainId),
       );
       await Promise.all(indexingPromises);
       await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+
+  private async _acquireLock() {
+    if (this.lock && this.lock.expiration > Date.now()) {
+      this.logger.log(`lock_has_not_expired_yet`);
+      return;
+    }
+    for (let i = this.lockedIndex; ; i++) {
+      if (i == NO_OF_WORKERS) {
+        i = 0;
+      }
+      try {
+        this.lock = await this.redlock.acquire([`${i}`], 5000);
+        this.lockedIndex = i;
+        this.chainsToIndex = CHUNKED_CHAINS[i];
+        this.logger.log(`lock_acquired(index=${i}, chains=${this.chainsToIndex})`);
+        break;
+      } catch (e) {
+        this.logger.warn(`lock_acquire_failed(index=${i})`);
+      }
     }
   }
 
@@ -258,6 +287,7 @@ export class IndexerService {
         eventSignature: parsedLog.signature,
         data: data,
       };
+      events.push(event);
     }
     return events;
   }
